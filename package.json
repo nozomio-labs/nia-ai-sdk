@@ -1,6 +1,7 @@
 {
   "name": "@nozomioai/nia-ai-sdk",
   "version": "0.0.0",
+  "packageManager": "bun@1.3.11",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -20,6 +21,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
