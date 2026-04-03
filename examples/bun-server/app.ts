@@ -59,18 +59,20 @@ function initTabs(): void {
 	}
 
 	function activate(tab: HTMLButtonElement): void {
-		const target = tab.dataset.tab!;
-		tabs.forEach((t) => {
+		const target = tab.dataset.tab ?? "";
+		for (const t of tabs) {
 			t.classList.toggle("active", t === tab);
 			t.setAttribute("aria-selected", String(t === tab));
-		});
-		panels.forEach((p) =>
-			p.classList.toggle("active", p.id === `${target}-panel`),
-		);
+		}
+		for (const p of panels) {
+			p.classList.toggle("active", p.id === `${target}-panel`);
+		}
 		positionInk(tab, true);
 	}
 
-	tabs.forEach((t) => t.addEventListener("click", () => activate(t)));
+	for (const t of tabs) {
+		t.addEventListener("click", () => activate(t));
+	}
 
 	const active = document.querySelector<HTMLButtonElement>(".tab.active");
 	if (active) {
@@ -173,9 +175,7 @@ async function refreshConfig(): Promise<void> {
 	);
 
 	if (data.anthropicModel) {
-		items.push(
-			renderStatusPair("Model", String(data.anthropicModel)),
-		);
+		items.push(renderStatusPair("Model", String(data.anthropicModel)));
 	}
 
 	if (data.baseUrl) {
@@ -185,11 +185,7 @@ async function refreshConfig(): Promise<void> {
 	statusBar.innerHTML = items.join("");
 }
 
-function renderStatusDot(
-	state: string,
-	label: string,
-	value: string,
-): string {
+function renderStatusDot(state: string, label: string, value: string): string {
 	return `<div class="status-item"><span class="status-dot ${state}"></span><span class="status-key">${escapeHtml(label)}</span><span class="status-val">${escapeHtml(value)}</span></div>`;
 }
 

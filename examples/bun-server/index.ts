@@ -295,10 +295,10 @@ async function streamEvents(options: {
 
 function createTools(payload: DemoPayload) {
 	return createNiaResearchTools({
+		...getTransportOptions(),
 		tracer:
 			payload.service === "tracer"
 				? {
-						...getTransportOptions(),
 						defaultRequest: {
 							repositories: payload.repositories,
 							mode: payload.mode,
@@ -308,7 +308,6 @@ function createTools(payload: DemoPayload) {
 		oracle:
 			payload.service === "oracle"
 				? {
-						...getTransportOptions(),
 						defaultRequest: {
 							repositories: payload.repositories,
 							dataSources: payload.dataSources,
@@ -319,7 +318,6 @@ function createTools(payload: DemoPayload) {
 		documentAgent:
 			payload.service === "documentAgent"
 				? {
-						...getTransportOptions(),
 						defaultRequest: {
 							sourceId: payload.sourceId,
 							sourceIds: payload.sourceIds,

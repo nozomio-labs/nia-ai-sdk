@@ -55,10 +55,29 @@ export interface CreateDocumentAgentToolOptions extends NiaTransportOptions {
 	includeRawByDefault?: boolean;
 }
 
-export interface CreateNiaResearchToolsOptions {
-	tracer?: CreateTracerToolOptions | false;
-	oracle?: CreateOracleToolOptions | false;
-	documentAgent?: CreateDocumentAgentToolOptions | false;
+export type CreateTracerToolServiceOptions = Omit<
+	CreateTracerToolOptions,
+	keyof NiaTransportOptions
+> &
+	Partial<NiaTransportOptions>;
+
+export type CreateOracleToolServiceOptions = Omit<
+	CreateOracleToolOptions,
+	keyof NiaTransportOptions
+> &
+	Partial<NiaTransportOptions>;
+
+export type CreateDocumentAgentToolServiceOptions = Omit<
+	CreateDocumentAgentToolOptions,
+	keyof NiaTransportOptions
+> &
+	Partial<NiaTransportOptions>;
+
+export interface CreateNiaResearchToolsOptions
+	extends Partial<NiaTransportOptions> {
+	tracer?: CreateTracerToolServiceOptions | false;
+	oracle?: CreateOracleToolServiceOptions | false;
+	documentAgent?: CreateDocumentAgentToolServiceOptions | false;
 }
 
 export function createTracerTool(
@@ -283,25 +302,47 @@ export function createNiaResearchTools(
 	oracle?: Tool<NiaOracleToolInput, NiaToolResult>;
 	documentAgent?: Tool<NiaDocumentAgentToolInput, NiaDocumentAgentToolResult>;
 } {
+	const { tracer, oracle, documentAgent, ...sharedTransport } = options;
+
 	return {
-		...(options.tracer === false
+		...(tracer === false
 			? {}
 			: {
-					tracer: createTracerTool(options.tracer ?? missingOptions("tracer")),
+					tracer: createTracerTool(
+						mergeTransport(sharedTransport, tracer, "tracer"),
+					),
 				}),
-		...(options.oracle === false
+		...(oracle === false
 			? {}
 			: {
-					oracle: createOracleTool(options.oracle ?? missingOptions("oracle")),
+					oracle: createOracleTool(
+						mergeTransport(sharedTransport, oracle, "oracle"),
+					),
 				}),
-		...(options.documentAgent === false
+		...(documentAgent === false
 			? {}
 			: {
 					documentAgent: createDocumentAgentTool(
-						options.documentAgent ?? missingOptions("documentAgent"),
+						mergeTransport(sharedTransport, documentAgent, "documentAgent"),
 					),
 				}),
 	};
+}
+
+function mergeTransport<T extends Partial<NiaTransportOptions>>(
+	shared: Partial<NiaTransportOptions>,
+	service: T | undefined,
+	name: string,
+): T & NiaTransportOptions {
+	const merged = { ...shared, ...service };
+
+	if (!merged.apiKey) {
+		throw new Error(
+			`Missing apiKey for ${name}. Provide it at the top level or per-service.`,
+		);
+	}
+
+	return merged as T & NiaTransportOptions;
 }
 
 function maybeOmitRaw<T extends { raw: unknown }>(
@@ -314,8 +355,4 @@ function maybeOmitRaw<T extends { raw: unknown }>(
 
 	const { raw: _raw, ...rest } = result;
 	return rest;
-}
-
-function missingOptions(name: string): never {
-	throw new Error(`Missing ${name} tool configuration`);
 }

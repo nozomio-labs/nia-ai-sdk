@@ -40,21 +40,19 @@ import { openai } from "@ai-sdk/openai";
 import { createNiaResearchTools } from "@nozomioai/nia-ai-sdk";
 
 const tools = createNiaResearchTools({
+  apiKey: process.env.NIA_API_KEY!,
   tracer: {
-    apiKey: process.env.NIA_API_KEY!,
     defaultRequest: {
       mode: "tracer-deep",
     },
   },
   oracle: {
-    apiKey: process.env.NIA_API_KEY!,
     defaultRequest: {
       repositories: ["vercel/ai"],
       dataSources: ["Vercel AI SDK"],
     },
   },
   documentAgent: {
-    apiKey: process.env.NIA_API_KEY!,
     defaultRequest: {
       sourceId: "src_abc123",
     },

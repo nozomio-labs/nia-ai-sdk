@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { createDocumentAgentTool, createTracerTool } from "./tools";
+import {
+	createDocumentAgentTool,
+	createNiaResearchTools,
+	createTracerTool,
+} from "./tools";
 
 describe("createTracerTool", () => {
 	test("runs a tracer job and returns normalized output", async () => {
@@ -169,5 +173,123 @@ describe("createDocumentAgentTool", () => {
 			thinking_budget: 12000,
 			stream: false,
 		});
+	});
+});
+
+describe("createNiaResearchTools", () => {
+	const mockFetch = async (url: string | URL | Request) => {
+		const u = String(url);
+
+		if (u.endsWith("/github/tracer")) {
+			return new Response(
+				JSON.stringify({
+					job_id: "job_shared",
+					session_id: "session_shared",
+					status: "queued",
+				}),
+				{ status: 200, headers: { "Content-Type": "application/json" } },
+			);
+		}
+
+		return new Response(
+			JSON.stringify({
+				status: "completed",
+				report: "shared transport works",
+				citations: [],
+			}),
+			{ status: 200, headers: { "Content-Type": "application/json" } },
+		);
+	};
+
+	test("accepts shared transport options so apiKey is specified once", async () => {
+		const tools = createNiaResearchTools({
+			apiKey: "nia_shared_key",
+			baseURL: "https://example.com/v2",
+			fetch: mockFetch,
+			initialBackoffMs: 0,
+			tracer: {
+				pollIntervalMs: 0,
+				defaultRequest: { mode: "tracer-fast" },
+			},
+			oracle: false,
+			documentAgent: false,
+		});
+
+		expect(tools.tracer).toBeDefined();
+		expect(tools.oracle).toBeUndefined();
+		expect(tools.documentAgent).toBeUndefined();
+
+		const result = (await tools.tracer?.execute?.(
+			{ query: "shared transport test" },
+			{ toolCallId: "tool_shared", messages: [] },
+		)) as Record<string, unknown> | undefined;
+
+		expect(result?.text).toBe("shared transport works");
+		expect(result?.status).toBe("completed");
+	});
+
+	test("per-service apiKey overrides the shared one", async () => {
+		const capturedKeys: string[] = [];
+
+		const tools = createNiaResearchTools({
+			apiKey: "nia_shared_key",
+			baseURL: "https://example.com/v2",
+			initialBackoffMs: 0,
+			tracer: {
+				apiKey: "nia_tracer_override",
+				pollIntervalMs: 0,
+				defaultRequest: { mode: "tracer-fast" },
+				fetch: async (_url, init) => {
+					const auth = (init?.headers as Record<string, string>)?.Authorization;
+					if (auth) {
+						capturedKeys.push(auth.replace("Bearer ", ""));
+					}
+
+					if (String(_url).endsWith("/github/tracer")) {
+						return new Response(
+							JSON.stringify({
+								job_id: "job_override",
+								status: "queued",
+							}),
+							{
+								status: 200,
+								headers: { "Content-Type": "application/json" },
+							},
+						);
+					}
+
+					return new Response(
+						JSON.stringify({
+							status: "completed",
+							report: "override test",
+							citations: [],
+						}),
+						{
+							status: 200,
+							headers: { "Content-Type": "application/json" },
+						},
+					);
+				},
+			},
+			oracle: false,
+			documentAgent: false,
+		});
+
+		await tools.tracer?.execute?.(
+			{ query: "override test" },
+			{ toolCallId: "tool_override", messages: [] },
+		);
+
+		expect(capturedKeys.every((k) => k === "nia_tracer_override")).toBe(true);
+	});
+
+	test("throws when no apiKey is provided at any level", () => {
+		expect(() =>
+			createNiaResearchTools({
+				tracer: {
+					defaultRequest: { mode: "tracer-fast" },
+				},
+			}),
+		).toThrow("Missing apiKey for tracer");
 	});
 });
