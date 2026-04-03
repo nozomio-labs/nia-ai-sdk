@@ -1,0 +1,481 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Nia — Research Console</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
+		<link rel="stylesheet" href="./styles.css" />
+	</head>
+	<body>
+		<div class="noise" aria-hidden="true"></div>
+
+		<header class="topbar">
+			<div class="brand">
+				<span class="brand-name">nia</span>
+				<span class="brand-sep">/</span>
+				<span class="brand-ctx">research console</span>
+			</div>
+		</header>
+
+		<main class="main">
+			<section class="hero">
+				<h1 class="hero-title">
+					Adapter<br />
+					<em>Playground</em>
+				</h1>
+				<p class="hero-desc">
+					Exercise the Nia adapter's three surfaces — tool-calling,
+					grounded middleware, and raw event streams — from a single
+					Bun server.
+				</p>
+			</section>
+
+			<div class="status-bar" id="statusBar"></div>
+
+			<nav class="tabs" role="tablist">
+				<button
+					class="tab active"
+					role="tab"
+					data-tab="tools"
+					aria-selected="true"
+				>
+					<span class="tab-num">01</span>
+					<span class="tab-name">Tools</span>
+				</button>
+				<button
+					class="tab"
+					role="tab"
+					data-tab="middleware"
+					aria-selected="false"
+				>
+					<span class="tab-num">02</span>
+					<span class="tab-name">Middleware</span>
+				</button>
+				<button
+					class="tab"
+					role="tab"
+					data-tab="stream"
+					aria-selected="false"
+				>
+					<span class="tab-num">03</span>
+					<span class="tab-name">Stream</span>
+				</button>
+				<div class="tab-ink" aria-hidden="true"></div>
+			</nav>
+
+			<div class="panels">
+				<!-- ─── Tools ─────────────────────────────── -->
+				<section
+					class="panel active"
+					id="tools-panel"
+					role="tabpanel"
+				>
+					<form id="toolsForm" class="form" autocomplete="off">
+						<div class="field">
+							<label for="t-service">Service</label>
+							<select id="t-service" name="service">
+								<option value="tracer">Tracer</option>
+								<option value="oracle">Oracle</option>
+								<option value="documentAgent">
+									Document Agent
+								</option>
+							</select>
+						</div>
+						<div class="field span">
+							<label for="t-prompt">Prompt</label>
+							<textarea
+								id="t-prompt"
+								name="prompt"
+								rows="3"
+								placeholder="Research how the Bun example exercises the adapter."
+							></textarea>
+						</div>
+						<details class="extras">
+							<summary>
+								<span>More options</span>
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 12 12"
+									fill="none"
+								>
+									<path
+										d="M3 4.5L6 7.5L9 4.5"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</summary>
+							<div class="extras-grid">
+								<div class="field">
+									<label>Repositories</label>
+									<input
+										name="repositories"
+										placeholder="vercel/ai, nozomio-labs/nia-ai-sdk"
+									/>
+								</div>
+								<div class="field">
+									<label>Data Sources</label>
+									<input
+										name="dataSources"
+										placeholder="Vercel AI SDK"
+									/>
+								</div>
+								<div class="field">
+									<label>Source ID</label>
+									<input
+										name="sourceId"
+										placeholder="src_abc123"
+									/>
+								</div>
+								<div class="field">
+									<label>Source IDs</label>
+									<input
+										name="sourceIds"
+										placeholder="src_abc123, src_xyz789"
+									/>
+								</div>
+								<div class="field">
+									<label>Mode</label>
+									<select name="mode">
+										<option value="">Default</option>
+										<option value="tracer-fast">
+											Fast
+										</option>
+										<option value="tracer-deep">
+											Deep
+										</option>
+									</select>
+								</div>
+								<div class="field">
+									<label>Output Format</label>
+									<input
+										name="outputFormat"
+										placeholder="Bullets, summary, JSON"
+									/>
+								</div>
+								<div class="field">
+									<label>Thinking Budget</label>
+									<input
+										name="thinkingBudget"
+										type="number"
+										min="1000"
+										step="1000"
+										placeholder="12000"
+									/>
+								</div>
+								<div class="field">
+									<label class="check-wrap">
+										<input
+											name="thinkingEnabled"
+											type="checkbox"
+										/>
+										<span>Enable thinking</span>
+									</label>
+								</div>
+							</div>
+						</details>
+						<div class="field span actions">
+							<button type="submit" class="btn">
+								Run Tool Demo
+							</button>
+						</div>
+					</form>
+					<div class="out-wrap">
+						<div class="out-bar">
+							<span class="out-title">Output</span>
+							<span class="out-state" id="toolsState"
+								>idle</span
+							>
+						</div>
+						<pre class="out" id="toolsOutput">Waiting for input.</pre>
+					</div>
+				</section>
+
+				<!-- ─── Middleware ─────────────────────────── -->
+				<section class="panel" id="middleware-panel" role="tabpanel">
+					<form id="middlewareForm" class="form" autocomplete="off">
+						<div class="field">
+							<label for="m-service">Service</label>
+							<select id="m-service" name="service">
+								<option value="oracle">Oracle</option>
+								<option value="tracer">Tracer</option>
+								<option value="documentAgent">
+									Document Agent
+								</option>
+							</select>
+						</div>
+						<div class="field span">
+							<label for="m-prompt">Prompt</label>
+							<textarea
+								id="m-prompt"
+								name="prompt"
+								rows="3"
+								placeholder="Ask a grounded question for the wrapped model."
+							></textarea>
+						</div>
+						<details class="extras">
+							<summary>
+								<span>More options</span>
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 12 12"
+									fill="none"
+								>
+									<path
+										d="M3 4.5L6 7.5L9 4.5"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</summary>
+							<div class="extras-grid">
+								<div class="field">
+									<label>Repositories</label>
+									<input
+										name="repositories"
+										placeholder="vercel/ai"
+									/>
+								</div>
+								<div class="field">
+									<label>Data Sources</label>
+									<input
+										name="dataSources"
+										placeholder="Vercel AI SDK"
+									/>
+								</div>
+								<div class="field">
+									<label>Source ID</label>
+									<input
+										name="sourceId"
+										placeholder="src_contract_123"
+									/>
+								</div>
+								<div class="field">
+									<label>Source IDs</label>
+									<input
+										name="sourceIds"
+										placeholder="src_contract_123, src_guide_456"
+									/>
+								</div>
+								<div class="field">
+									<label>Mode</label>
+									<select name="mode">
+										<option value="">Default</option>
+										<option value="tracer-fast">
+											Fast
+										</option>
+										<option value="tracer-deep">
+											Deep
+										</option>
+									</select>
+								</div>
+								<div class="field">
+									<label>Output Format</label>
+									<input
+										name="outputFormat"
+										placeholder="Short answer with citations"
+									/>
+								</div>
+								<div class="field">
+									<label>Thinking Budget</label>
+									<input
+										name="thinkingBudget"
+										type="number"
+										min="1000"
+										step="1000"
+										placeholder="12000"
+									/>
+								</div>
+								<div class="field">
+									<label class="check-wrap">
+										<input
+											name="thinkingEnabled"
+											type="checkbox"
+										/>
+										<span>Enable thinking</span>
+									</label>
+								</div>
+							</div>
+						</details>
+						<div class="field span actions">
+							<button type="submit" class="btn">
+								Run Middleware Demo
+							</button>
+						</div>
+					</form>
+					<div class="out-wrap">
+						<div class="out-bar">
+							<span class="out-title">Output</span>
+							<span class="out-state" id="middlewareState"
+								>idle</span
+							>
+						</div>
+						<pre class="out" id="middlewareOutput">Waiting for input.</pre>
+					</div>
+				</section>
+
+				<!-- ─── Stream ────────────────────────────── -->
+				<section class="panel" id="stream-panel" role="tabpanel">
+					<form id="streamForm" class="form" autocomplete="off">
+						<div class="field">
+							<label for="s-kind">Stream Kind</label>
+							<select id="s-kind" name="kind">
+								<option value="tracer">Tracer</option>
+								<option value="oracle">Oracle</option>
+								<option value="document-agent">
+									Document Agent
+								</option>
+							</select>
+						</div>
+						<div class="field span">
+							<label for="s-prompt">Prompt</label>
+							<textarea
+								id="s-prompt"
+								name="prompt"
+								rows="3"
+								placeholder="Watch raw events arrive from Nia."
+							></textarea>
+						</div>
+						<details class="extras">
+							<summary>
+								<span>More options</span>
+								<svg
+									width="12"
+									height="12"
+									viewBox="0 0 12 12"
+									fill="none"
+								>
+									<path
+										d="M3 4.5L6 7.5L9 4.5"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									/>
+								</svg>
+							</summary>
+							<div class="extras-grid">
+								<div class="field">
+									<label>Repositories</label>
+									<input
+										name="repositories"
+										placeholder="vercel/ai"
+									/>
+								</div>
+								<div class="field">
+									<label>Data Sources</label>
+									<input
+										name="dataSources"
+										placeholder="Vercel AI SDK"
+									/>
+								</div>
+								<div class="field">
+									<label>Source ID</label>
+									<input
+										name="sourceId"
+										placeholder="src_pdf_123"
+									/>
+								</div>
+								<div class="field">
+									<label>Source IDs</label>
+									<input
+										name="sourceIds"
+										placeholder="src_pdf_123, src_pdf_456"
+									/>
+								</div>
+								<div class="field">
+									<label>Mode</label>
+									<select name="mode">
+										<option value="">Default</option>
+										<option value="tracer-fast">
+											Fast
+										</option>
+										<option value="tracer-deep">
+											Deep
+										</option>
+									</select>
+								</div>
+								<div class="field">
+									<label>Output Format</label>
+									<input
+										name="outputFormat"
+										placeholder="Bullet summary"
+									/>
+								</div>
+								<div class="field">
+									<label>Thinking Budget</label>
+									<input
+										name="thinkingBudget"
+										type="number"
+										min="1000"
+										step="1000"
+										placeholder="12000"
+									/>
+								</div>
+								<div class="field">
+									<label class="check-wrap">
+										<input
+											name="thinkingEnabled"
+											type="checkbox"
+										/>
+										<span>Enable thinking</span>
+									</label>
+								</div>
+							</div>
+						</details>
+						<div class="field span actions">
+							<button type="submit" class="btn">
+								Start Stream
+							</button>
+							<button
+								type="button"
+								class="btn btn-ghost"
+								id="stopStreamButton"
+							>
+								Stop
+							</button>
+						</div>
+					</form>
+					<div class="out-wrap">
+						<div class="out-bar">
+							<span class="out-title">Output</span>
+							<span class="out-state" id="streamState"
+								>idle</span
+							>
+						</div>
+						<pre class="out" id="streamOutput">No stream connected.</pre>
+					</div>
+				</section>
+			</div>
+
+			<footer class="notes">
+				<p>
+					<strong>Tracer</strong> — Public GitHub research, no prior
+					indexing needed.
+				</p>
+				<p>
+					<strong>Oracle</strong> — Requires repositories or data
+					sources already indexed in Nia.
+				</p>
+				<p>
+					<strong>Document Agent</strong> — Needs indexed source IDs,
+					returns page-level citations.
+				</p>
+			</footer>
+		</main>
+
+		<script type="module" src="./app.ts"></script>
+	</body>
+</html>

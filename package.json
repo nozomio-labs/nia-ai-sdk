@@ -48,6 +48,8 @@
 		"build": "tsdown",
 		"dev": "tsdown --watch",
 		"test": "bun test",
+		"example:bun-server": "cd ./examples/bun-server && bun run dev",
+		"example:bun-server:check": "cd ./examples/bun-server && bun run check:types",
 		"check": "biome check .",
 		"check:types": "tsc --noEmit",
 		"changeset": "changeset",
