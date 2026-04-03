@@ -1,6 +1,6 @@
 # @nozomioai/nia-ai-sdk
 
-Pure AI SDK adapter for Nia `Tracer`, `Oracle`, and `Document Agent`.
+[AI SDK adapter](https://ai-sdk.dev/) for [Nia](https://www.trynia.ai/) `Tracer`, `Oracle`, and `Document Agent`.
 
 This package is designed for AI SDK workflows where you want to:
 
